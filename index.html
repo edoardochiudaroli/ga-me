@@ -30,6 +30,8 @@ let state = "menu";
 // menu | settings | play | gameover
 
 // ================= DIFFICULTY SETTINGS =================
+const SPEED_MULTIPLIER = 3; // <<< 3x faster square
+
 const difficulties = {
     easy:   { enemySpeed: 2, spawnRate: 140, playerSpeed: 5 },
     medium: { enemySpeed: 4, spawnRate: 100, playerSpeed: 7 },
@@ -43,7 +45,7 @@ const player = {
     x: 80,
     y: canvas.height / 2,
     size: 20,
-    speed: difficulties[currentDifficulty].playerSpeed
+    speed: difficulties[currentDifficulty].playerSpeed * SPEED_MULTIPLIER
 };
 
 let arrows = [];
@@ -55,18 +57,18 @@ let frame = 0;
 // ================= CONTROLS =================
 document.addEventListener("keydown", e => {
 
+    // GLOBAL: go back to menu
+    if (e.key.toLowerCase() === "s") {
+        state = "menu";
+        return;
+    }
+
     // MENU
     if (state === "menu") {
         if (e.key === "Enter") startGame();
-        if (e.key.toLowerCase() === "s") state = "settings";
-    }
-
-    // SETTINGS
-    if (state === "settings") {
         if (e.key === "1") setDifficulty("easy");
         if (e.key === "2") setDifficulty("medium");
         if (e.key === "3") setDifficulty("hard");
-        if (e.key === "Escape") state = "menu";
     }
 
     // GAME
@@ -80,10 +82,10 @@ document.addEventListener("keydown", e => {
     if (state === "gameover" && e.key.toLowerCase() === "r") restartGame();
 });
 
-// ================= SETTINGS LOGIC =================
+// ================= SETTINGS =================
 function setDifficulty(level) {
     currentDifficulty = level;
-    player.speed = difficulties[level].playerSpeed;
+    player.speed = difficulties[level].playerSpeed * SPEED_MULTIPLIER;
 }
 
 // ================= GAME FLOW =================
@@ -111,7 +113,7 @@ function shootArrow() {
     arrows.push({
         x: player.x + player.size,
         y: player.y + player.size / 2,
-        speed: 7
+        speed: 8
     });
 }
 
@@ -170,87 +172,15 @@ function update() {
     explosions = explosions.filter(e => e.radius < 20);
 }
 
-// ================= DRAW SCREENS =================
+// ================= DRAW =================
 function drawMenu() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "white";
     ctx.font = "48px Arial";
-    ctx.fillText("SPACE WAVE", 220, 130);
+    ctx.fillText("SPACE WAVE", 220, 120);
 
     ctx.font = "22px Arial";
-    ctx.fillText("ENTER  - Start Game", 280, 210);
-    ctx.fillText("S      - Settings", 280, 245);
-}
-
-function drawSettings() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "white";
-    ctx.font = "42px Arial";
-    ctx.fillText("SETTINGS", 280, 120);
-
-    ctx.font = "22px Arial";
-    ctx.fillText("1 - Easy",   320, 190);
-    ctx.fillText("2 - Medium", 320, 230);
-    ctx.fillText("3 - Hard",   320, 270);
-
-    ctx.fillText("Current: " + currentDifficulty.toUpperCase(), 280, 320);
-    ctx.fillText("ESC - Back", 320, 360);
-}
-
-function drawGame() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = "cyan";
-    ctx.fillRect(player.x, player.y, player.size, player.size);
-
-    ctx.fillStyle = "yellow";
-    arrows.forEach(a => {
-        ctx.beginPath();
-        ctx.moveTo(a.x, a.y);
-        ctx.lineTo(a.x - 10, a.y - 5);
-        ctx.lineTo(a.x - 10, a.y + 5);
-        ctx.fill();
-    });
-
-    ctx.fillStyle = "red";
-    monsters.forEach(m => ctx.fillRect(m.x, m.y, m.size, m.size));
-
-    ctx.strokeStyle = "orange";
-    explosions.forEach(e => {
-        ctx.beginPath();
-        ctx.arc(e.x + 15, e.y + 15, e.radius, 0, Math.PI * 2);
-        ctx.stroke();
-    });
-
-    ctx.fillStyle = "white";
-    ctx.font = "20px Arial";
-    ctx.fillText("Score: " + score, 20, 30);
-    ctx.fillText("Difficulty: " + currentDifficulty.toUpperCase(), 560, 30);
-}
-
-function drawGameOver() {
-    ctx.fillStyle = "white";
-    ctx.font = "40px Arial";
-    ctx.fillText("GAME OVER", 280, 200);
-    ctx.font = "20px Arial";
-    ctx.fillText("Press R to Restart", 300, 240);
-}
-
-// ================= MAIN LOOP =================
-function loop() {
-    if (state === "menu") drawMenu();
-    if (state === "settings") drawSettings();
-    if (state === "play") {
-        update();
-        drawGame();
-    }
-    if (state === "gameover") drawGameOver();
-
-    requestAnimationFrame(loop);
-}
-
-loop();
-</script>
-
-</body>
-</html>
+    ctx.fillText("ENTER - Start Game", 280, 200);
+    ctx.fillText("1 / 2 / 3 - Difficulty", 260, 235);
+    ctx.fillText("S - Return to Menu (anytime)", 230, 270);
+    ctx.fillText("Current:
